@@ -1,0 +1,164 @@
+#!/bin/bash
+# Main Launcher - Firoj Termux Suite
+
+# --- PATH FIXER START ---
+# এই অংশটি আসল ফোল্ডার খুঁজে বের করবে, যেখানেই symlink থাকুক না কেন
+if [ -L "${BASH_SOURCE[0]}" ]; then
+    # যদি এটি symlink হয় (যেমন /bin/firoj), তাহলে আসল পাথ বের করো
+    REAL_PATH=$(readlink -f "${BASH_SOURCE[0]}")
+    DIR="$(dirname "$REAL_PATH")"
+else
+    # যদি সরাসরি রান করা হয়
+    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+fi
+
+# যদি কোনো কারণে পাথ না পাওয়া যায়, ডিফল্ট লোকেশন সেট করো
+if [ ! -f "$DIR/core/banner.sh" ]; then
+    DIR="$HOME/Firoj-Termux-Suite"
+fi
+# --- PATH FIXER END ---
+
+# Configuration
+HISTORY_FILE="$DIR/core/.history"
+
+# Source Core Files (Error handling included)
+if [ -f "$DIR/core/colors.sh" ] && [ -f "$DIR/core/banner.sh" ]; then
+    source "$DIR/core/colors.sh"
+    source "$DIR/core/banner.sh"
+else
+    echo "Error: Core files not found in $DIR/core/"
+    echo "Please reinstall or run from the Firoj-Termux-Suite directory."
+    exit 1
+fi
+
+# Create history file if not exists
+if [ ! -f "$HISTORY_FILE" ]; then
+    touch "$HISTORY_FILE"
+fi
+
+# Function to run scripts
+run_tool() {
+    local script="$1"
+    local name="$2"
+    
+    if [ -f "$script" ]; then
+        # Log to history
+        echo "$(date +%H:%M) - $name" >> "$HISTORY_FILE"
+        # Keep last 5 entries
+        tail -n 5 "$HISTORY_FILE" > "$HISTORY_FILE.tmp" && mv "$HISTORY_FILE.tmp" "$HISTORY_FILE"
+        
+        clear
+        bash "$script"
+        echo -e "${YELLOW}\n[Press Enter to return to menu]${RESET}"
+        read
+    else
+        echo -e "${RED}[!] Error: Script not found at $script${RESET}"
+        echo -e "${YELLOW}Check if the file exists in the directory.${RESET}"
+        read
+    fi
+}
+
+while true; do
+    print_banner
+    
+    # Show History
+    echo -e "${CYAN}--- Recent Activity ---${RESET}"
+    if [ -s "$HISTORY_FILE" ]; then
+        cat "$HISTORY_FILE" | sed 's/^/  /'
+    else
+        echo "  (No recent activity)"
+    fi
+    echo "==========================================="
+    
+    echo -e "${BOLD}Select a Category:${RESET}"
+    echo -e "${GREEN}[1] 🤖 AI Tools (Offline)${RESET}"
+    echo -e "${GREEN}[2] ⚙️  Automation Tools${RESET}"
+    echo -e "${GREEN}[3] 🎨 Image & Video Gen${RESET}"
+    echo -e "${GREEN}[4] 🌐 Network & Hacking${RESET}"
+    echo -e "${BLUE}[5] 🔄 Update Tool${RESET}"
+    echo -e "${BLUE}[6] ℹ️  About Developer${RESET}"
+    echo -e "${RED}[0] 🚪 Exit${RESET}"
+    
+    echo -n -e "${YELLOW}root@firoj-suite:~# ${RESET}"
+    read choice
+
+    case $choice in
+        1)
+            echo -e "\n${CYAN}--- AI TOOLS ---${RESET}"
+            echo "1. Text Fixer"
+            echo "2. Grammar Checker"
+            echo "3. Offline OCR"
+            echo "4. File Summarizer"
+            echo "5. Text Encrypter"
+            read -p "Select: " s
+            case $s in
+                1) run_tool "$DIR/ai-tools/text-fixer.sh" "Text Fixer" ;;
+                2) run_tool "$DIR/ai-tools/grammar-checker.sh" "Grammar Checker" ;;
+                3) run_tool "$DIR/ai-tools/offline-ocr.sh" "OCR" ;;
+                4) run_tool "$DIR/ai-tools/file-summarizer.sh" "Summarizer" ;;
+                5) run_tool "$DIR/ai-tools/text-encrypter.sh" "Encrypter" ;;
+            esac
+            ;;
+        2)
+            echo -e "\n${CYAN}--- AUTOMATION ---${RESET}"
+            echo "1. Auto Backup"
+            echo "2. Auto Cleaner"
+            echo "3. High CPU Killer"
+            echo "4. Password Gen"
+            echo "5. QR Generator"
+            echo "6. Storage Monitor"
+            read -p "Select: " s
+            case $s in
+                1) run_tool "$DIR/automation-tools/auto-backup.sh" "Backup" ;;
+                2) run_tool "$DIR/automation-tools/auto-cleaner.sh" "Cleaner" ;;
+                3) run_tool "$DIR/automation-tools/auto-process-killer.sh" "Process Killer" ;;
+                4) run_tool "$DIR/automation-tools/password-generator.sh" "Pass Gen" ;;
+                5) run_tool "$DIR/automation-tools/qr-generator.sh" "QR Gen" ;;
+                6) run_tool "$DIR/automation-tools/storage-monitor.sh" "Storage Mon" ;;
+            esac
+            ;;
+        3)
+            echo -e "\n${CYAN}--- MEDIA ---${RESET}"
+            echo "1. ASCII Art Maker"
+            echo "2. Image Resizer"
+            echo "3. Image Compressor"
+            echo "4. Video to MP3"
+            read -p "Select: " s
+            case $s in
+                1) run_tool "$DIR/image-video-gen/ascii-art-maker.sh" "ASCII Art" ;;
+                2) run_tool "$DIR/image-video-gen/image-resizer.sh" "Img Resizer" ;;
+                3) run_tool "$DIR/image-video-gen/image-compressor.sh" "Img Compressor" ;;
+                4) run_tool "$DIR/image-video-gen/video-to-mp3.sh" "Vid2Mp3" ;;
+            esac
+            ;;
+        4)
+            echo -e "\n${CYAN}--- NETWORK ---${RESET}"
+            echo "1. Whois Lookup"
+            echo "2. Port Scanner"
+            echo "3. Wifi Analyzer"
+            echo "4. IP Tracker"
+            echo "5. Speedtest"
+            read -p "Select: " s
+            case $s in
+                1) run_tool "$DIR/hacking-tools/whois-lookup.sh" "Whois" ;;
+                2) run_tool "$DIR/hacking-tools/port-scanner.sh" "Port Scan" ;;
+                3) run_tool "$DIR/hacking-tools/wifi-analyzer.sh" "Wifi Analyzer" ;;
+                4) run_tool "$DIR/hacking-tools/ip-tracker.sh" "IP Tracker" ;;
+                5) run_tool "$DIR/hacking-tools/network-speedtest.sh" "Speedtest" ;;
+            esac
+            ;;
+        5) bash "$DIR/update.sh" ;;
+        6) 
+            clear
+            echo -e "${YELLOW}Developed by Firoj Mondal${RESET}"
+            echo "Check README.md for social links."
+            echo "Press Enter..."
+            read
+            ;;
+        0) 
+            echo "Exiting..."
+            exit 0 
+            ;;
+        *) echo "Invalid Option" ;;
+    esac
+done
